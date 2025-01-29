@@ -1,0 +1,2 @@
+#define IDI_DEFAULT 101
+#define IDC_DEFAULT 201
