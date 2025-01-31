@@ -22,13 +22,18 @@ void GameFinalize();
 
 void MovingBrushUpdate();
 void MovingBrushRender();
+
 void RandomPixelRender();
 void RandomPixelUpdate();
+
+void BitmapUpdate();
+void BitmapRender();
+
 //
 
 
 // GLOBAL VARIABLES //
-constexpr bool FULLSCREEN{ false };
+constexpr bool FULLSCREEN{ true };
 
 const struct
 {
@@ -68,6 +73,16 @@ std::uniform_int_distribution<int> xRand(0, clientWidth);
 std::uniform_int_distribution<int> yRand(0, clientHeight);
 std::uniform_int_distribution<int> rgbRand(0, 255);
 
+
+//bitmap
+HBITMAP image;
+BITMAP bitmap;
+HDC imageHDC;
+
+short bitmapXDir{};
+short bitmapYDir{};
+
+RECT clientRect{};
 
 //
 
@@ -150,7 +165,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 		{
 			GameUpdate();
 			GameRender();
-			//Sleep(1000 / 144);
+			Sleep(1000/60);
 		}
 	} 
 	while (msg.message != WM_QUIT);
@@ -190,12 +205,36 @@ void GameInit()
 {
 	hdc = GetDC(windowHwnd);
 
-	x = 100;
-	y = 100;
+	x = 0;
+	y = 0;
 
 	r = 255;
 	g = 255;
 	b = 255;
+
+	clientRect = { 0, 0, clientWidth, clientHeight };
+
+	bitmapXDir = 1;
+	bitmapYDir = 1;
+
+	//carrega a imagem bitmap
+	image = (HBITMAP) LoadImage(
+		NULL, 
+		"res\\dilio.bmp", 
+		IMAGE_BITMAP, 
+		0, 
+		0, 
+		LR_LOADFROMFILE
+	);
+
+	//lê as propriedades do HBITMAP (image) e passa para o BITMAP (bitmap)
+	GetObject(image, sizeof(BITMAP), &bitmap);
+
+	//cria o hdc da imagem baseado no hdc da tela
+	imageHDC = CreateCompatibleDC(hdc);
+	//coloca a imagem no hdc da imagem
+	SelectObject(imageHDC, image);
+
 }
 void GameUpdate()
 {
@@ -204,16 +243,20 @@ void GameUpdate()
 
 	//game
 	//MovingBrushUpdate();
-	RandomPixelUpdate();
+	//RandomPixelUpdate();
+	BitmapUpdate();
 }
 void GameRender()
 {
 	//game
 	//MovingBrushRender();
-	RandomPixelRender();
+	//RandomPixelRender();
+	BitmapRender();
 }
 void GameFinalize()
 {
+	DeleteDC(imageHDC);
+	DeleteObject((HBITMAP)image);
 	ReleaseDC(windowHwnd, hdc);
 }
 
@@ -268,6 +311,23 @@ void RandomPixelUpdate()
 }
 void RandomPixelRender()
 {
-	SetPixel(hdc, x, y, RGB(r, g, b));
+	SetPixel(hdc, x, y, RGB(r, g, b));	
+}
+
+void BitmapUpdate()
+{
+	x += bitmapXDir;
+	y += bitmapYDir;
+
+	if (x <= 0 || x + bitmap.bmWidth >= clientWidth)
+		bitmapXDir *= -1;
+	if (y <= 0 || y + bitmap.bmHeight >= clientHeight)
+		bitmapYDir *= -1;
+}
+void BitmapRender()
+{
+	FillRect(hdc, &clientRect, CreateSolidBrush(RGB(0, 0, 0)));
+
+	BitBlt(hdc, x, y, bitmap.bmWidth, bitmap.bmHeight, imageHDC, 0, 0, SRCCOPY);
 }
 //
