@@ -101,8 +101,9 @@ void WinGame::Render()
 	//Implementação do LAB
 	// 
 	//simple line
-	DrawLine(x0, y0, x1, y1, rainbow[4]);
+	//DrawLine(x0, y0, x1, y1, rainbow[4]);
 	//DrawLineNew(x0, y0, x1, y1, rainbow[4]);
+	DrawLineNew(0, 0, 100, 50, rainbow[4]);
 
 	//rainbow line //não consegui fazer funcionar como eu queria
 	//for (size_t i{ 0 }; i < 7; i++)
@@ -148,13 +149,9 @@ void WinGame::DrawLineNew(int x0, int y0, int x1, int y1, COLORREF color) const
 
 		if (x0 - x1 < 0)
 			x0++;
-		if (x0 - x1 > 0)
-			x0--;
 
 		if (y0 - y1 < 0)
 			y0++;
-		if (y0 - y1 > 0)
-			y0--;
 	}
 
 
@@ -171,5 +168,8 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	engine->window->SetIcon(IDI_DEFAULT);
 	engine->window->SetCursor(IDC_DEFAULT);
 
-	engine->Run(new WinGame());
+	int exitCode = engine->Run(new WinGame());
+
+	delete engine;
+	return exitCode;
 }
